@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nardelli Precios</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#f4f4f4;
+text-align:center;
+}
+
+header{
+background:#c40000;
+color:white;
+padding:18px;
+font-size:24px;
+font-weight:bold;
+}
+
+main{
+padding:15px;
+max-width:520px;
+margin:auto;
+}
+
+button{
+width:100%;
+padding:16px;
+font-size:22px;
+font-weight:bold;
+border:none;
+border-radius:12px;
+background:#ffd400;
+margin-bottom:15px;
+}
+
+video{
+width:100%;
+border-radius:14px;
+background:#000;
+}
+
+.card{
+background:white;
+padding:18px;
+border-radius:14px;
+margin-top:15px;
+box-shadow:0 4px 10px rgba(0,0,0,.12);
+}
+
+.precio{
+font-size:46px;
+font-weight:bold;
+color:#c40000;
+margin-top:10px;
+}
+
+.small{
+font-size:15px;
+color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<header>Nardelli Precios</header>
+
+<main>
+
+<button onclick="abrirCamara()">📷 Escanear Producto</button>
+
+<video id="video" autoplay playsinline></video>
+
+<div id="resultado" class="card">
+Esperando escaneo...
+</div>
+
+</main>
+
+<script>
+
+const API = "https://script.google.com/macros/s/AKfycbx81plecIUhPbJrbdT4bJwccGL93wa18eVoHbGSUIzbyEbQZvbPC-X-VM2hULlyul5qsw/exec";
+
+let detector;
+let activo=false;
+
+async function abrirCamara(){
+
+try{
+
+const stream = await navigator.mediaDevices.getUserMedia({
+video:{ facingMode:"environment" },
+audio:false
+});
+
+video.srcObject = stream;
+
+document.getElementById("resultado").innerHTML="Cámara activa...";
+
+if("BarcodeDetector" in window){
+
+detector = new BarcodeDetector({
+formats:["ean_13","ean_8","upc_a","upc_e","code_128"]
+});
+
+activo=true;
+leer();
+
+}else{
+document.getElementById("resultado").innerHTML=
+"Navegador no soporta escaneo automático.";
+}
+
+}catch(e){
+document.getElementById("resultado").innerHTML=
+"No se pudo abrir cámara.";
+}
+
+}
+
+async function leer(){
+
+if(!activo) return;
+
+try{
+
+const codes = await detector.detect(video);
+
+if(codes.length){
+
+activo=false;
+
+buscar(codes[0].rawValue);
+return;
+}
+
+}catch(e){}
+
+requestAnimationFrame(leer);
+}
+
+function buscar(codigo){
+
+document.getElementById("resultado").innerHTML="Buscando...";
+
+fetch(API + "?codigo=" + encodeURIComponent(codigo))
+.then(r=>r.json())
+.then(data=>{
+
+if(data.ok){
+
+document.getElementById("resultado").innerHTML=`
+<div><b>${data.nombre}</b></div>
+<div class="small">Código interno: ${data.codigo}</div>
+<div class="small">${data.categoria}</div>
+<div class="precio">$ ${Number(data.precio).toLocaleString('es-AR',{minimumFractionDigits:2})}</div>
+`;
+
+}else{
+document.getElementById("resultado").innerHTML="Producto no encontrado";
+}
+
+});
+}
+
+</script>
+
+</body>
+</html>
