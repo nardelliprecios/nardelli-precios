@@ -86,75 +86,116 @@ Esperando escaneo...
 
 <script>
 
+let leyendo = false;
+
 const API="https://script.google.com/macros/s/AKfycbx81plecIUhPbJrbdT4bJwccGL93wa18eVoHbGSUIzbyEbQZvbPC-X-VM2hULlyul5qsw/exec";
 
 let qr;
 
 function iniciar(){
 
-document.getElementById("resultado").innerHTML="Abriendo cámara...";
+  leyendo = false;
 
-qr = new Html5Qrcode("reader");
+  document.getElementById("reader").innerHTML = "";
+  document.getElementById("resultado").innerHTML="Abriendo cámara...";
 
-qr.start(
-{ facingMode: "environment" },
-{
-fps: 10,
-qrbox: { width: 280, height: 140 },
-formatsToSupport: [
-Html5QrcodeSupportedFormats.EAN_13,
-Html5QrcodeSupportedFormats.EAN_8,
-Html5QrcodeSupportedFormats.UPC_A,
-Html5QrcodeSupportedFormats.UPC_E,
-Html5QrcodeSupportedFormats.CODE_128
-]
-},
-(codigo) => {
+  qr = new Html5Qrcode("reader");
 
-  qr.stop().then(() => {
+  qr.start(
+  { facingMode: "environment" },
+  {
+  fps: 10,
+  qrbox: { width: 280, height: 140 },
+  formatsToSupport: [
+  Html5QrcodeSupportedFormats.EAN_13,
+  Html5QrcodeSupportedFormats.EAN_8,
+  Html5QrcodeSupportedFormats.UPC_A,
+  Html5QrcodeSupportedFormats.UPC_E,
+  Html5QrcodeSupportedFormats.CODE_128
+  ]
+  },
+  (codigo) => {
 
-    buscar(codigo.trim());
+    if (leyendo) return;
+    leyendo = true;
 
-  }).catch(err => {
-    console.log("Error al detener cámara:", err);
-    buscar(codigo.trim());
+    qr.stop().then(() => {
+
+      buscar(codigo.trim());
+
+    }).catch(err => {
+      console.log("Error al detener cámara:", err);
+      buscar(codigo.trim());
+    });
+
+  },
+  (errorMessage) => {}
+  ).catch(err => {
+  document.getElementById("resultado").innerHTML=
+  "No se pudo abrir cámara";
   });
-
-},
-(errorMessage) => {}
-).catch(err => {
-document.getElementById("resultado").innerHTML=
-"No se pudo abrir cámara";
-});
 
 }
 
 function buscar(codigo){
 
-document.getElementById("resultado").innerHTML="Buscando producto...";
+  document.getElementById("resultado").innerHTML =
+  "Buscando código: " + codigo;
 
-fetch(API + "?codigo=" + encodeURIComponent(codigo))
-.then(r=>r.json())
-.then(data=>{
+  fetch(API + "?codigo=" + encodeURIComponent(codigo))
+  .then(r => r.text())
+  .then(txt => {
 
-if(data.ok){
+    console.log("Respuesta cruda:", txt);
 
-document.getElementById("resultado").innerHTML=`
-<div><b>${data.nombre}</b></div>
-<div class="small">Código interno: ${data.codigo}</div>
-<div class="small">${data.categoria}</div>
-<div class="precio">$ ${Number(data.precio).toLocaleString('es-AR',{minimumFractionDigits:2})}</div>
-`;
+    let data;
 
-}else{
+    try {
+      data = JSON.parse(txt);
+    } catch (e) {
+      document.getElementById("resultado").innerHTML =
+        "Error parseando respuesta";
+      return;
+    }
 
-document.getElementById("resultado").innerHTML=
-"Producto no encontrado";
+    console.log("JSON parseado:", data);
+
+    if(data.ok){
+
+      document.getElementById("resultado").innerHTML=`
+      <div><b>${data.nombre}</b></div>
+      <div class="small">Código interno: ${data.codigo}</div>
+      <div class="small">${data.categoria}</div>
+      <div class="precio">$ ${Number(data.precio).toLocaleString('es-AR',{minimumFractionDigits:2})}</div>
+      <button onclick="reiniciar()">🔄 Escanear otro producto</button>
+      `;
+
+    } else {
+
+      document.getElementById("resultado").innerHTML=`
+      Producto no encontrado
+      <br><br>
+      <button onclick="reiniciar()">🔄 Intentar otro</button>
+      `;
+
+    }
+
+  })
+  .catch(err => {
+
+    console.log("ERROR FETCH:", err);
+
+    document.getElementById("resultado").innerHTML =
+      "Error consultando servidor";
+
+  });
 
 }
 
-});
-
+function reiniciar(){
+  leyendo = false;
+  document.getElementById("reader").innerHTML = "";
+  document.getElementById("resultado").innerHTML = "Listo para escanear...";
 }
 
 </script>
