@@ -111,9 +111,14 @@ Html5QrcodeSupportedFormats.CODE_128
 },
 (codigo) => {
 
-qr.stop();
+  qr.stop().then(() => {
 
-buscar(codigo);
+    buscar(codigo.trim());
+
+  }).catch(err => {
+    console.log("Error al detener cámara:", err);
+    buscar(codigo.trim());
+  });
 
 },
 (errorMessage) => {}
