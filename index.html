@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nardelli Precios</title>
+<title>Nardelli: Calidad y Servicio</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
@@ -11,16 +11,17 @@
 body{
 margin:0;
 font-family:Arial,sans-serif;
-background:#f2f2f2;
+background: #111;
 text-align:center;
+color: #fff;
 }
 
 header{
 background:#c40000;
-color:#fff;
-padding:18px;
+padding:12px;
 font-size:24px;
 font-weight:bold;
+text-align:center;
 }
 
 main{
@@ -38,6 +39,7 @@ border:none;
 border-radius:12px;
 background:#ffd400;
 margin-bottom:15px;
+margin-top:15px;
 }
 
 #reader{
@@ -48,7 +50,7 @@ overflow:hidden;
 }
 
 .card{
-background:#fff;
+background:#222;
 padding:18px;
 border-radius:14px;
 margin-top:15px;
@@ -56,21 +58,48 @@ box-shadow:0 4px 10px rgba(0,0,0,.12);
 }
 
 .precio{
-font-size:46px;
+font-size:80px;
 font-weight:bold;
-color:#c40000;
-margin-top:10px;
+color: #ffd400;
+margin-top:15px;
 }
 .small{
 font-size:15px;
-color:#666;
+margin-top:15px;
+color:#aaa;
 }
+
+.msg{
+font-size:25px;
+color: #fff;
+margin-top:15px;
+}
+
+.barcode{
+font-size:20px;
+color: #ffd400;
+margin-top:15px;
+}
+
+#footer{
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+background:#c40000;
+color:#fff;
+text-align:center;
+padding:12px;
+font-size:24px;
+box-shadow:0 -2px 10px rgba(0,0,0,0.3);
+}
+
 </style>
 </head>
 
 <body>
 
-<header>Nardelli Precios</header>
+<header>NARDELLI: Calidad y Servicio</header>
 
 <main>
 
@@ -97,7 +126,7 @@ function iniciar(){
   leyendo = false;
 
   document.getElementById("reader").innerHTML = "";
-  document.getElementById("resultado").innerHTML="Abriendo cámara...";
+  document.getElementById("resultado").innerHTML="Apunte su código de barra...";
 
   qr = new Html5Qrcode("reader");
 
@@ -163,8 +192,9 @@ function buscar(codigo){
     if(data.ok){
 
       document.getElementById("resultado").innerHTML=`
-      <div><b>${data.nombre}</b></div>
-      <div class="small">Código interno: ${data.codigo}</div>
+      <div class="barcode">${codigo}</b></div>
+      <div class="msg">${data.nombre}</div>
+      <div class="small">Código: ${data.codigo}</div>
       <div class="small">${data.categoria}</div>
       <div class="precio">$ ${Number(data.precio).toLocaleString('es-AR',{minimumFractionDigits:2})}</div>
       <button onclick="reiniciar()">🔄 Escanear otro producto</button>
@@ -195,10 +225,19 @@ function buscar(codigo){
 function reiniciar(){
   leyendo = false;
   document.getElementById("reader").innerHTML = "";
-  document.getElementById("resultado").innerHTML = "Listo para escanear...";
+  document.getElementById("resultado").innerHTML = "Pulse Escanear para iniciar la cámara";
 }
+window.onload = function(){
+  setTimeout(() => {
+    iniciar();
+  }, 500);
+};
 
 </script>
+
+<footer id="footer">
+  ¡Muchas Gracias por Confiar!
+</footer>
 
 </body>
 </html>
