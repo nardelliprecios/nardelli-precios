@@ -58,7 +58,7 @@ box-shadow:0 4px 10px rgba(0,0,0,.12);
 }
 
 .precio{
-font-size:80px;
+font-size:60px;
 font-weight:bold;
 color: #ffd400;
 margin-top:15px;
@@ -126,7 +126,7 @@ function iniciar(){
   leyendo = false;
 
   document.getElementById("reader").innerHTML = "";
-  document.getElementById("resultado").innerHTML="Apunte su código de barra...";
+  document.getElementById("resultado").innerHTML="Coloque su código dentro de las marcas";
 
   qr = new Html5Qrcode("reader");
 
@@ -169,7 +169,7 @@ function iniciar(){
 function buscar(codigo){
 
   document.getElementById("resultado").innerHTML =
-  "Buscando código: " + codigo;
+  "Buscando, por favor aguarde...";
 
   fetch(API + "?codigo=" + encodeURIComponent(codigo))
   .then(r => r.text())
@@ -205,6 +205,9 @@ function buscar(codigo){
       document.getElementById("resultado").innerHTML=`
       Producto no encontrado
       <br><br>
+      codigo leído:
+      <br>
+      <div class="barcode"> ${codigo}</div>
       <button onclick="reiniciar()">🔄 Intentar otro</button>
       `;
 
@@ -223,20 +226,32 @@ function buscar(codigo){
 }
 
 function reiniciar(){
+
   leyendo = false;
+
   document.getElementById("reader").innerHTML = "";
-  document.getElementById("resultado").innerHTML = "Pulse Escanear para iniciar la cámara";
+
+  document.getElementById("resultado").innerHTML =
+  "Abriendo cámara...";
+
+  setTimeout(() => {
+    iniciar();
+  }, 300);
+
 }
+
 window.onload = function(){
+
   setTimeout(() => {
     iniciar();
   }, 500);
+
 };
 
 </script>
 
 <footer id="footer">
-  ¡Muchas Gracias por Confiar!
+  ¡Gracias por su consulta!
 </footer>
 
 </body>
