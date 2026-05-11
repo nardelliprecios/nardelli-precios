@@ -191,12 +191,31 @@ function buscar(codigo){
 
     if(data.ok){
 
-      document.getElementById("resultado").innerHTML=`
-      <div class="barcode">${codigo}</b></div>
+      document.getElementById("resultado").innerHTML = `
+
+      <div class="barcode">${codigo}</div>
+
       <div class="msg">${data.nombre}</div>
+
       <div class="small">Código: ${data.codigo}</div>
+
       <div class="small">${data.categoria}</div>
-      <div class="precio">$ ${Number(data.precio).toLocaleString('es-AR',{minimumFractionDigits:2})}</div>
+
+      ${data.peso ? `
+      <div class="small">
+      Peso: ${data.peso.toFixed(3)} Kg
+      </div>
+
+      <div class="small">
+      Precio x Kg:
+      $ ${Number(data.precio).toLocaleString('es-AR',{minimumFractionDigits:2})}
+      </div>
+      ` : ``}
+
+      <div class="precio">
+      $ ${Number(data.precioFinal).toLocaleString('es-AR',{minimumFractionDigits:2})}
+      </div>
+
       <button onclick="reiniciar()">🔄 Escanear otro producto</button>
       `;
 
