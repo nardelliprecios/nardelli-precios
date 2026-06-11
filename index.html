@@ -105,41 +105,7 @@ box-shadow:0 -2px 10px rgba(0,0,0,0.3);
 
 <button onclick="iniciar()">📷 Escanear Producto</button>
 
-<button onclick="mostrarBusqueda()">
-🔍 Buscar por nombre o código
-</button>
-
-<div id="busqueda" style="display:none;">
-
-<input
-id="textoBusqueda"
-type="text"
-placeholder="Ingrese código o descripción"
-style="
-width:100%;
-padding:16px;
-font-size:20px;
-border-radius:12px;
-border:none;
-margin-bottom:10px;
-box-sizing:border-box;
-">
-
-<button onclick="buscarManual()">
-Buscar
-</button>
-
-</div>
-
 <div id="reader"></div>
-
-<div id="busqueda" style="display:none">
-
-<button onclick="buscarTexto()">
-Buscar
-</button>
-
-</div>
 
 <div id="resultado" class="card">
 Esperando escaneo...
@@ -149,37 +115,9 @@ Esperando escaneo...
 
 <script>
 
-function mostrarBusqueda(){
-
-document.getElementById("reader").innerHTML="";
-
-document.getElementById("busqueda").style.display="block";
-
-document.getElementById("resultado").innerHTML=
-"Ingrese código o descripción";
-
-document.getElementById("textoBusqueda").focus();
-
-}
-
-function buscarManual(){
-
-const texto =
-document.getElementById("textoBusqueda")
-.value
-.trim();
-
-if(!texto){
-return;
-}
-
-buscar(texto);
-
-}
-
 let leyendo = false;
 
-cconst API="https://script.google.com/macros/s/AKfycbyCONTH6eP7YKBnfE5_zkA8J_tlfyECY4f6H9Jcwd6QKn0oF9fYJCyuxVKbIvwm2Oiq5A/exec";
+const API="https://script.google.com/macros/s/AKfycbyCONTH6eP7YKBnfE5_zkA8J_tlfyECY4f6H9Jcwd6QKn0oF9fYJCyuxVKbIvwm2Oiq5A/exec";
 
 let qr;
 
@@ -307,7 +245,7 @@ function buscar(codigo){
 }
 
 function reiniciar(){
-  
+
   leyendo = false;
 
   document.getElementById("reader").innerHTML = "";
@@ -321,11 +259,11 @@ function reiniciar(){
 
 }
 
-
 window.onload = function(){
 
-document.getElementById("resultado").innerHTML =
-"Seleccione una opción para comenzar";
+  setTimeout(() => {
+    iniciar();
+  }, 500);
 
 };
 
