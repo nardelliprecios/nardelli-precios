@@ -5,80 +5,73 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Nardelli: Calidad y Servicio</title>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
-
 <style>
 body{
 margin:0;
 font-family:Arial,sans-serif;
-background: #111;
-text-align:center;
-color: #fff;
+background-image:url("fondo.png");
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+background-attachment:fixed;
+color:#fff;
 }
 
 header{
 background:#c40000;
 padding:12px;
-font-size:24px;
+font-size:30px;
 font-weight:bold;
 text-align:center;
 }
 
 main{
-padding:15px;
-max-width:520px;
-margin:auto;
-}
-
-button{
-width:100%;
-padding:16px;
-font-size:22px;
-font-weight:bold;
-border:none;
-border-radius:12px;
-background:#ffd400;
-margin-bottom:15px;
-margin-top:15px;
-}
-
-#reader{
-width:100%;
-background:#fff;
-border-radius:14px;
-overflow:hidden;
+height:calc(100vh - 140px);
+display:flex;
+align-items:center;
+justify-content:center;
+padding-left:10px;
+padding-right:10px;
 }
 
 .card{
 background:#222;
-padding:18px;
-border-radius:14px;
-margin-top:15px;
-box-shadow:0 4px 10px rgba(0,0,0,.12);
+padding: 30px;
+border-radius:15px;
+text-align:center;
+max-width:1200px;
+width:100%;
 }
 
 .precio{
-font-size:60px;
+font-size:120px;
 font-weight:bold;
-color: #ffd400;
-margin-top:15px;
-}
-.small{
-font-size:15px;
-margin-top:15px;
-color:#aaa;
-}
-
-.msg{
-font-size:25px;
-color: #fff;
-margin-top:15px;
+color:#ffd400;
+margin-top:20px;
+text-align:center;
 }
 
 .barcode{
-font-size:20px;
-color: #ffd400;
-margin-top:15px;
+    font-size: 30px;
+    color:#ffd400;
+    margin-top: 10px;
+}
+
+.small{
+font-size:26px;
+color:#aaa;
+margin-top:10px;
+}
+
+.msg{
+font-size:50px;
+margin-top:20px;
+}
+
+.srch{
+  font-size: 50px;
+  color: #ffd400;
+  margin-top: 20px;
 }
 
 #footer{
@@ -90,7 +83,7 @@ background:#c40000;
 color:#fff;
 text-align:center;
 padding:12px;
-font-size:24px;
+font-size:30px;
 box-shadow:0 -2px 10px rgba(0,0,0,0.3);
 }
 
@@ -103,91 +96,83 @@ box-shadow:0 -2px 10px rgba(0,0,0,0.3);
 
 <main>
 
-<button onclick="iniciar()">📷 Escanear Producto</button>
-
-<div id="reader"></div>
-
 <div id="resultado" class="card">
-Esperando escaneo...
+<div class="srch">Escanee su código</div>
 </div>
 
 </main>
 
-<script>
 
-let leyendo = false;
+<script>
 
 const API="https://script.google.com/macros/s/AKfycbyCONTH6eP7YKBnfE5_zkA8J_tlfyECY4f6H9Jcwd6QKn0oF9fYJCyuxVKbIvwm2Oiq5A/exec";
 
-let qr;
+let buffer = "";
+let timeout = null;
+let bloqueado = false;
 
-function iniciar(){
+document.addEventListener("keydown", function(e){
 
-  leyendo = false;
+  if(timeout){
+    clearTimeout(timeout);
+  }
 
-  document.getElementById("reader").innerHTML = "";
-  document.getElementById("resultado").innerHTML="Coloque su código dentro de las marcas";
+  if(e.key === "Enter"){
 
-  qr = new Html5Qrcode("reader");
+  if(bloqueado){
+    buffer = "";
+    return;
+  }
 
-  qr.start(
-  { facingMode: "environment" },
-  {
-  fps: 10,
-  qrbox: { width: 280, height: 140 },
-  formatsToSupport: [
-  Html5QrcodeSupportedFormats.EAN_13,
-  Html5QrcodeSupportedFormats.EAN_8,
-  Html5QrcodeSupportedFormats.UPC_A,
-  Html5QrcodeSupportedFormats.UPC_E,
-  Html5QrcodeSupportedFormats.CODE_128
-  ]
-  },
-  (codigo) => {
+  if(buffer.length > 5){
 
-    if (leyendo) return;
-    leyendo = true;
+    bloqueado = true;
 
-    qr.stop().then(() => {
+    procesar(buffer);
 
-      buscar(codigo.trim());
+  }
 
-    }).catch(err => {
-      console.log("Error al detener cámara:", err);
-      buscar(codigo.trim());
-    });
+  buffer = "";
+  return;
+  }
 
-  },
-  (errorMessage) => {}
-  ).catch(err => {
-  document.getElementById("resultado").innerHTML=
-  "No se pudo abrir cámara";
-  });
+  buffer += e.key;
 
-}
+  timeout = setTimeout(() => {
+    buffer = "";
+  }, 200);
 
-function buscar(codigo){
+});
+
+function procesar(codigo){
 
   document.getElementById("resultado").innerHTML =
-  "Buscando, por favor aguarde...";
+  "<div class='srch'>⏳ AGUARDE...<br><br>CONSULTANDO PRODUCTO</div>";
 
   fetch(API + "?codigo=" + encodeURIComponent(codigo))
   .then(r => r.text())
   .then(txt => {
 
-    console.log("Respuesta cruda:", txt);
-
     let data;
 
     try {
       data = JSON.parse(txt);
-    } catch (e) {
-      document.getElementById("resultado").innerHTML =
-        "Error parseando respuesta";
+    } catch {
+
+      mostrarError("Error de lectura");
+
+      setTimeout(() => {
+
+        bloqueado = false;
+
+        document.getElementById("resultado").innerHTML = `
+        <div class="msg">Escanee su código</div>
+        `;
+
+      }, 3000);
+
       return;
     }
-
-    console.log("JSON parseado:", data);
 
     if(data.ok){
 
@@ -201,9 +186,10 @@ function buscar(codigo){
 
       <div class="small">${data.categoria}</div>
 
-      ${data.peso ? `
+      ${data.peso !== null &&
+      data.peso !== undefined ? `
       <div class="small">
-      Peso: ${data.peso.toFixed(3)} Kg
+      Peso: ${Number(data.peso).toFixed(3)} Kg
       </div>
 
       <div class="small">
@@ -213,65 +199,70 @@ function buscar(codigo){
       ` : ``}
 
       <div class="precio">
-      $ ${Number(data.precioFinal).toLocaleString('es-AR',{minimumFractionDigits:2})}
-      </div>
+      $ ${Number(
+      data.precioFinal ??
+      data.precio ??
+      0
+      ).toLocaleString(
+      'es-AR',
+      {
+      minimumFractionDigits:2
+      }
+    )}
+</div>
 
-      <button onclick="reiniciar()">🔄 Escanear otro producto</button>
       `;
+
+      setTimeout(() => {
+        bloqueado = false;
+        document.getElementById("resultado").innerHTML = `
+        <div class="srch">Escanee su código</div>
+        `;
+      }, 6500);
 
     } else {
 
-      document.getElementById("resultado").innerHTML=`
-      Producto no encontrado
-      <br><br>
-      codigo leído:
-      <br>
-      <div class="barcode"> ${codigo}</div>
-      <button onclick="reiniciar()">🔄 Intentar otro</button>
-      `;
+      mostrarError("LO SENTIMOS<br><br>⚠ PRODUCTO NO ENCONTRADO<br><br>CONSULTE EN RECEPCIÓN");
 
+      setTimeout(() => {
+        bloqueado = false;
+        document.getElementById("resultado").innerHTML = `
+        <div class="srch">Escanee su código</div>
+        `;
+      }, 6500);
     }
 
   })
-  .catch(err => {
+  .catch(() => {
 
-    console.log("ERROR FETCH:", err);
+    mostrarError("Error de conexión");
 
-    document.getElementById("resultado").innerHTML =
-      "Error consultando servidor";
+    setTimeout(() => {
+
+      bloqueado = false;
+
+      document.getElementById("resultado").innerHTML = `
+      <div class="msg">Escanee su código</div>
+      `;
+
+    }, 3000);
 
   });
 
 }
 
-function reiniciar(){
-
-  leyendo = false;
-
-  document.getElementById("reader").innerHTML = "";
-
-  document.getElementById("resultado").innerHTML =
-  "Abriendo cámara...";
-
-  setTimeout(() => {
-    iniciar();
-  }, 300);
-
+function mostrarError(msg){
+  document.getElementById("resultado").innerHTML = `
+  <div class="srch">${msg}</div>
+  `;
 }
-
-window.onload = function(){
-
-  setTimeout(() => {
-    iniciar();
-  }, 500);
-
-};
 
 </script>
 
 <footer id="footer">
-  ¡Gracias por su consulta!
+  ¡Gracias por su Consulta!
 </footer>
 
 </body>
+
 </html>
